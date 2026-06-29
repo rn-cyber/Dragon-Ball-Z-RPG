@@ -129,7 +129,7 @@ function obterAnimacaoAtaque(atacante) {
 function obterSomHabilidade(habilidade) {
     const nomeHabilidade = habilidade.nome;
     const mapeadorSons = {
-        "Kamehameha": "sons/Kamehameha.mp3",
+        "Kamehameha": "sons/kamehameha.mp3",
         "SuperKamehameha": "sons/SuperKamehameha.mp3",
         "Kamehameha X20": "sons/kamehamehax20.mp3",
         "Galick Ho": "sons/GalickHo.mp3",
