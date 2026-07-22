@@ -841,7 +841,7 @@ const estagios = {
         criarPersonagem2: () => ({
             nome: "Vegeta",
             hp: 2000,
-            atk: 450,
+            atk: 400,
             def: 350,
             esquiva: 13,
             critico: 12,
@@ -1312,7 +1312,7 @@ function atualizarPowerUp(personagem) {
 function transformarEmOozaru(defensor) {
     defensor.oozaruAtivo = true;
     defensor.hp += 500;
-    defensor.atk+=100;
+    defensor.atk+=150;
     defensor.def+=50;
     defensor.habilidades[0].codigo = "Chou Makouhou";
     defensor.habilidades[0].nome = "Chou Makouhou";
