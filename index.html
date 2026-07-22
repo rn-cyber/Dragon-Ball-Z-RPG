@@ -28,16 +28,16 @@
     }
 
     #telaInicio h1 {
-      font-size: 65px;
+      font-size: 70px;
       margin-bottom: 20px;
-      text-shadow: 2px 2px 4px red;
-    }
+      text-shadow: 4px 4px 8px rgb(0, 0, 0);
+      font-weight:lighter
+      }
 
     #btnStart {
       background: linear-gradient(45deg, orange, red);
       color: white;
       font-family: 'Orbitron', sans-serif;
-      /* fonte futurista e espaçada */
       font-size: 20px;
       font-weight: bold;
       padding: 12px 24px;
@@ -128,18 +128,18 @@
     }
 
     #controls .btn-ataque {
-      background: linear-gradient(45deg, #ff4d4d, #b30000);
-      border-color: #ffb3b3;
+      background: linear-gradient(45deg, #b30000, #b50000);
+      border-color: #ffffff;
     }
 
     #controls .btn-habilidade {
-      background: linear-gradient(45deg, #4da3ff, #0057b8);
-      border-color: #b8d9ff;
+      background: linear-gradient(45deg, #1976d2, #1976d5);
+      border-color: #ffffff;
     }
 
     #controls .btn-item {
-      background: linear-gradient(45deg, #ffb347, #d97706);
-      border-color: #ffe0b3;
+      background: linear-gradient(45deg, #f57c00, #f57c10);
+      border-color: #ffffff;
     }
 
     #controls .btn-defesa {
@@ -148,13 +148,61 @@
     }
 
     #controls .btn-carregar-ki {
-      background: linear-gradient(45deg, #4cd964, #1f8f3f);
+      background: linear-gradient(45deg, #29b6f6, #29b8f9);
       border-color: #b7f0c1;
     }
 
     #controls .btn-kaioken {
-      background: linear-gradient(45deg, #a020f0, #500080);
+      background: linear-gradient(45deg, #ffc107, #ffc100);
       border-color: #d8b3ff;
+    }
+
+    .menu-habilidades {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin: 10px auto;
+      padding: 12px;
+      max-width: 360px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid yellow;
+      border-radius: 10px;
+    }
+
+    .menu-habilidades__titulo {
+      color: rgb(255, 123, 0);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    #menu-habilidades-botoes {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-menu-habilidade {
+      padding: 8px 12px;
+      background: linear-gradient(45deg, #4da3ff, #0057b8);
+      color: white;
+      border: 2px solid #b8d9ff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: bold;
+      min-width: 140px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-menu-habilidade:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px yellow;
     }
 
     #controls button:hover {
@@ -252,11 +300,11 @@
       font-size: 24px;
       background-color: #222;
       /* cor de fundo da faixa */
-      color: cyan;
+      color: rgb(255,108,10);
       /* cor do texto */
       padding: 8px;
       margin: 15px 0;
-      border: 2px solid #0ff;
+      border: 2px solid rgb(255,108,10);
       /* borda para destacar */
     }
 
@@ -338,7 +386,7 @@
     }
 
     .esquiva-msg {
-      color: cyan;
+      color: rgb(255,115,0);
       font-style: italic;
       text-align: center;
       font-size: 18px;
@@ -346,17 +394,33 @@
     }
 
     .habilidade-msg {
-      color: rgb(0, 238, 255);
+      color: #ffffff;
       font-weight: bold;
       text-align: center;
       font-size: 22px;
-      text-shadow: 0 0 10px rgb(4, 0, 255);
+      text-shadow: 0 0 10px #ffffff;
       margin: 10px 0;
     }
+    #flash{
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:white;
+
+    opacity:0;
+    pointer-events:none;
+
+    z-index:10000;
+
+    transition: opacity .8s ease;
+}
   </style>
 </head>
-
+<div id="flash"></div>
 <body>
+  
   <div id="telaInicio">
     <h1>DRAGON <span class="highlight">BALL</span> <span class="highlight">Z</span> RPG</h1>
     <button id="btnStart">Start</button>
@@ -384,6 +448,11 @@
       <button class="btn-carregar-ki" onclick="acaoJogador('carregarKi')"><img src="imagens/chargeKi.png" alt="Carregar Ki"></button>
       <button class="btn-kaioken" onclick="acaoJogador('kaioken')"><img src="imagens/powerUp.png" alt="Kaioken"></button>
       <button id="btnEstagio2" style="display:none;">Next</button>
+    </div>
+
+    <div id="menu-habilidades" class="menu-habilidades">
+      <div class="menu-habilidades__titulo">Escolha a habilidade</div>
+      <div id="menu-habilidades-botoes"></div>
     </div>
 
     <div id="status"></div>
@@ -433,11 +502,22 @@
       oozaruAtivo: false
     }
 
+    // Inicia o áudio da tela inicial assim que a página estiver pronta
+    document.addEventListener("DOMContentLoaded", () => {
+      tocarSomTelaInicial();
+
+      const permitirAudioInicial = () => {
+        tocarSomTelaInicial();
+      };
+
+      document.addEventListener("click", permitirAudioInicial, { once: true });
+      document.addEventListener("keydown", permitirAudioInicial, { once: true });
+    });
+
     // Inicializa o estágio 1 quando o jogo começa
     document.getElementById("btnStart").addEventListener("click", () => {
-      document.getElementById("telaInicio").style.display = "none";
-      document.getElementById("gameArea").style.display = "block";
-      inicializarEstagio(1);
+      pararSomTelaInicial();
+      transicaoInicio();
     });
 
   </script>
