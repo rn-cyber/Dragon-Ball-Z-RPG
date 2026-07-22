@@ -1022,9 +1022,9 @@ function executarAcaoJogador(acao, habilidadeSelecionada = null) {
     let escolha = Math.random();
     if (escolha < 0.20 && personagem2.ki>=250) { //20% de chance
         usarHabilidade(personagem2, personagem1, personagem2.habilidades[0]);
-    } else if (escolha < 0.30){ //20% de chance
+    } else if (escolha < 0.40){ //20% de chance
         defender(personagem2);        
-    } else if(escolha<0.40 || personagem2.ki<250){ //10% de chance
+    } else if(personagem2.ki<250){ //10% de chance
         carregarKi(personagem2);
     } else if(escolha<1.00 ){ //60% de chance
         atacar(personagem2, personagem1);
