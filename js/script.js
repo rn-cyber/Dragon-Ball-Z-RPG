@@ -19,8 +19,25 @@ const Piccolo = {
     // Exemplo para adicionar segunda habilidade:
     // { codigo: "NomeDaNovaHabilidade", nome: "NomeDaNovaHabilidade", custo: 400, dano: 800 }
     habilidades: [
-        { codigo: "Energy Wave", nome: "Energy Wave", custo: 450, dano: 1200 }
-        // Adicione a segunda habilidade aqui
+        { codigo: "Energy Wave", nome: "Energy Wave", custo: 400, dano: 1000 },
+        { codigo: "Light Grenade", nome: "Light Grenade", custo: 600, dano: 1400}
+    ],
+    itens: [
+        { nome: "Semente dos Deuses", cura: 500, quantidade: 3 }
+    ]
+};
+const superVegeta = {
+    nome: "Super Vegeta",
+    hp: 10000,
+    hpMax: 10000,
+    atk: 1950,
+    def: 1300,
+    esquiva: 30,
+    critico: 15,
+    ki:5000,
+    habilidades:[
+        { codigo: "Final Crash", nome: "Final Crash", custo: 1500, dano: 1375},
+        { codigo: "Energy Bullet", nome: "Energy Bullet", custo: 2000, dano: 2275}
     ],
     itens: [
         { nome: "Semente dos Deuses", cura: 500, quantidade: 3 }
@@ -107,6 +124,25 @@ function criarPersonagem1ParaEstagio(estagio) {
         personagem.defendendo = false;
         return personagem;
     }
+    if(estagio=== 4){
+        const personagem = JSON.parse(JSON.stringify(superVegeta));
+        personagem.habilidades = personagem.habilidades.map(h => ({
+            ...h,
+            codigo: h.codigo || h.chave || h.nome,
+            nome: h.nome || h.codigo || h.chave
+        }));
+        personagem.atkBase = personagem.atk;
+        personagem.defBase = personagem.def;
+        personagem.kiBase = personagem.ki;
+        personagem.esquivaBase = personagem.esquiva;
+        personagem.kaiokenAtivo = false;
+        personagem.kaiokenTurnos = 0;
+        personagem.powerUpAtivo=false;
+        personagem.powerUpTurnos=0;
+        personagem.ssjAtivo = false;
+        personagem.defendendo = false;
+        return personagem;
+    }
 
     const multiplicador = 2 ** (estagio - 1);
     const personagem = JSON.parse(JSON.stringify(gokuBaseStats));
@@ -114,8 +150,6 @@ function criarPersonagem1ParaEstagio(estagio) {
     personagem.hpMax *= multiplicador;
     personagem.atk *= multiplicador;
     personagem.def *= multiplicador;
-    personagem.esquiva *= multiplicador;
-    personagem.critico *= multiplicador;
     personagem.ki *= multiplicador;
     personagem.habilidades = personagem.habilidades.map(h => ({
         ...h,
@@ -140,7 +174,7 @@ function criarPersonagem1ParaEstagio(estagio) {
 // ===== Áudio e animações =====
 let audioTrilhaEstagio = null;
 let audioTelaInicial = null;
-function transicaoInicio() {
+function transicaoInicio(numeroEstagio = 1) {
     const flash = document.getElementById("flash");
 
     // tela fica branca
@@ -148,10 +182,10 @@ function transicaoInicio() {
 
     setTimeout(() => {
 
-        document.getElementById("telaInicio").style.display = "none";
+        
         document.getElementById("gameArea").style.display = "block";
 
-        inicializarEstagio(1);
+        inicializarEstagio(numeroEstagio);
 
         // volta ao normal
         setTimeout(() => {
@@ -164,7 +198,7 @@ function tocarSomTelaInicial() {
     if (!audioTelaInicial) {
         audioTelaInicial = new Audio('sons/menu.mp3');
         audioTelaInicial.loop = true;
-        audioTelaInicial.volume = 0;
+        audioTelaInicial.volume = 1;
     }
 
     if (audioTelaInicial.paused === false) {
@@ -241,6 +275,9 @@ function obterAnimacaoAtaque(atacante) {
         }
         return ['imagens/vegetaAtaque.mp4', 'imagens/vegetaAtaque2.mp4'];
     }
+    if (atacante.nome ==='Super Vegeta'){
+        return ['imagens/supervegetaataque1.mp4', 'imagens/supervegetaataque2.mp4']
+    }
 
     if (atacante.nome === 'Goku') {
         if (atacante.ssjAtivo) {
@@ -263,6 +300,9 @@ function obterAnimacaoAtaque(atacante) {
         return ['imagens/CellImpeAtaque1.mp4', 'imagens/CellImpeAtaque2.mp4'];
     }
 
+    if (atacante.nome === 'Cell Semi-perfeito'){
+        return ['imagens/cellSemiataque1.mp4', 'imagens/cellSemiataque2.mp4']
+    }
     if (atacante.nome === 'Freeza') {
         if (atacante.transformacaoAtiva) {
             return ['imagens/freezaFullAtaque2.mp4', 'imagens/freezaFullAtaque.mp4'];
@@ -275,6 +315,10 @@ function obterSomHabilidade(habilidade, personagem = null, estagioAtual = estagi
     const habilidadeResolvida = obterHabilidadeResolvida(personagem, habilidade, estagioAtual);
     const nomeHabilidade = habilidadeResolvida?.nome || obterChaveHabilidade(habilidade);
     const mapeadorSons = {
+        "Mouth Energy Wave":"sons/mouthEnergyWave.mp3",
+        "Final Crash":"sons/finalCrash.mp3",
+        "Energy Bullet":"sons/energyBullet.mp3",
+        "Kiai":"sons/kiai.mp3",
         "Kamehamehax3":"sons/kamehamehax3.mp3",
         "Kamehameha": "sons/kamehameha.mp3",
         "Genki Dama": "sons/GenkiDama1.mp3",
@@ -286,6 +330,7 @@ function obterSomHabilidade(habilidade, personagem = null, estagioAtual = estagi
         "Death Ball": "sons/DeathBall.mp3",
         "Chou Makouhou": "sons/ChouMakouhou.mp3",
         "Energy Wave": "sons/EnergyWave.mp3",
+        "Light Grenade": "sons/LightGrenade.mp3",
         "Absorcao": "sons/Absorcao.mp3"
     };
     return mapeadorSons[nomeHabilidade] || null;
@@ -309,6 +354,8 @@ function tocarSomHabilidade(habilidade, personagem = null, estagioAtual = estagi
 
 function obterSomEfeito(nomeEfeito) {
     const mapeadorEfeitos = {
+        "PowerUpSuperVegeta": "imagens/PowerUpSuperVegeta.mp4",
+        "kiChargeCellSemi": "imagens/kiChargeCellSemi.mp4",
         "Defesa":"sons/Defesa.mp3",
         "Senzu":"sons/Senzu.mp3",
         "Critico":"sons/Critico.mp3",
@@ -327,12 +374,11 @@ function obterSomEfeito(nomeEfeito) {
 }
 
 function tocarSomEfeito(nomeEfeito) {
-    if (nomeEfeito === "Atacar"  && habilidadeTocando) {
+    
+    if (nomeEfeito === "Atacar" && habilidadeTocando) {
     return;
-}
-if (nomeEfeito === "Esquiva"  && habilidadeTocando) {
-    return;
-}
+    }
+    
     const caminho = obterSomEfeito(nomeEfeito);
     if (!caminho) return;
 
@@ -343,7 +389,7 @@ function playEffectAudio(caminho) {
     // Se já houver um som de efeito em reprodução, interrompe antes de tocar o próximo.
     pararEfeitosAudio();
     const audio = new Audio(caminho);
-    audio.volume = 0.6;
+    audio.volume = 0.65;
     effectAudios.push(audio);
     audio.play().catch(() => {
         // Falha silenciosa se o áudio não puder ser reproduzido
@@ -381,6 +427,9 @@ function obterAnimacaoHabilidade(atacante, habilidade, estagioAtual = estagio) {
             return ['imagens/kameKaioken.mp4'];
             
         }
+        if(atacante.ki>=200 && estagioAtual===2 && nomeHabilidade==="Kiai" && atacante.ssjAtivo === true){
+            return['imagens/kiai.mp4'];
+        }
         if(atacante.ki>=2000 && estagioAtual === 2 && nomeHabilidade==="Super Genki Dama"){
             return['imagens/SuperGenkiDama.mp4']
         }
@@ -394,10 +443,21 @@ function obterAnimacaoHabilidade(atacante, habilidade, estagioAtual = estagio) {
         
     }
 
-    if (nomeHabilidade === 'Energy Wave' && atacante.ki >= 450) {
+    if (nomeHabilidade === 'Energy Wave' && atacante.ki >= 400) {
         return ['imagens/EnergyWave.mp4'];
     }
-
+    if (nomeHabilidade === 'Light Grenade' && atacante.ki >=600){
+        return ['imagens/LightGrenade.mp4'];
+    }
+    if(nomeHabilidade=== 'Energy Bullet' && atacante.ki>=2000){
+        return ['imagens/energyBullet.mp4']
+    }
+    if(nomeHabilidade=== 'Final Crash' && atacante.ki>=1500){
+        return ['imagens/finalCrash.mp4']
+    }
+    if (obterChaveHabilidade(habilidade)==='Mouth Energy Wave'){
+        return ['imagens/mouthEnergyWave.mp4'];
+    }
     if (obterChaveHabilidade(habilidade) === 'Absorcao') {
         return ['imagens/Absorcao.mp4'];
     }
@@ -426,7 +486,7 @@ function statusDeBatalha(personagemA, personagemB) {
       </div>
     `);
 
-    verificarTransformacaoGoku(personagemA);
+    GokuSSJ(personagemA);
     if (estagio >= 3) {
         atualizarPowerUp(personagemA);
         atualizarPowerUp(personagemB);
@@ -455,6 +515,12 @@ function getImagemStatus(personagem, estagio) {
     if (personagem.nome === "Piccolo") {
         return "imagens/Piccolo.mp4";
     }
+    if(personagem.nome==="Super Vegeta"){
+        return "imagens/supervegeta.mp4";
+    }
+    if(personagem.nome==="Cell Semi-perfeito"){
+        return "imagens/CellSemiperfeito.mp4";
+    }
     return "imagens/goku.png";
 }
 
@@ -482,12 +548,12 @@ function getStatusHtml(personagem, estagio) {
 
 
 // ===== Transformações =====
-function verificarTransformacaoGoku(personagem) {
+function GokuSSJ(personagem) {
     if (personagem.nome !== "Goku" || personagem.ssjAtivo || estagio === 1) return;
     if (personagem.hp <= 900) {
         personagem.ssjAtivo = true;
         personagem.kaiokenAtivo=false;
-        personagem.hp += 1500;
+        personagem.hp += 2000;
         personagem.atk += 400;
         personagem.def += 150;
         personagem.critico += 5;
@@ -496,6 +562,10 @@ function verificarTransformacaoGoku(personagem) {
         personagem.habilidades[0].nome = "SuperKamehameha";
         personagem.habilidades[0].custo += 100;
         personagem.habilidades[0].dano += 200;
+        personagem.habilidades[1].codigo = "Kiai";
+        personagem.habilidades[1].nome = "Kiai";
+        personagem.habilidades[1].custo = 200;
+        personagem.habilidades[1].dano = 500;
         logBattle(`<div class="habilidade-msg">${personagem.nome} despertou o Super Saiyajin!</div>`);
         tocarSomEfeito("Super Saiyajin");
         atualizarBotaoKaioken();
@@ -534,7 +604,13 @@ function mostrarAnimDerrota(personagem) {
     } else if (personagem.nome === "Goku" && estagio === 2) {
         video.src = "imagens/gokuMorreFreeza.mp4";
     } else if (personagem.nome === "Cell Imperfeito") {
+        video.loop = false
         video.src = "imagens/CellImperfeitoKO.mp4";
+    } else if(personagem.nome === "Cell Semi-perfeito"){
+        pararTrilhaEstagio()
+        video.src = "imagens/CellSemiKO.mp4";
+        video.volume = 0.5;
+        video.loop = false
     }
 
     battleLog.appendChild(video);
@@ -544,7 +620,7 @@ function transformarFreeza(defensor) {
     if (defensor.nome !== "Freeza" || defensor.transformacaoAtiva) return;
 
     defensor.transformacaoAtiva = true;
-    defensor.hp += 1500;
+    defensor.hp += 2500;
     defensor.atk += 50;
     defensor.def += 100;
     defensor.critico += 5;
@@ -572,18 +648,18 @@ function atacar(atacante, defensor) {
     let chanceCritico = Math.floor(Math.random() * 100)
     let dano = atacante.atk - defensor.def
     const battleLog = document.getElementById("battle-log");
-    if(chanceEsquiva>=defensor.esquiva){
+    if (chanceEsquiva <= defensor.esquiva) {
+        logBattle(`<div class="esquiva-msg">${defensor.nome} esquivou dos ataques de ${atacante.nome}!</div>`);
+        return
+    } 
     const animacao = escolherAnimacao(obterAnimacaoAtaque(atacante));
     const elementoAnimacao = criarElementoAnimacao(animacao);
     battleLog.appendChild(elementoAnimacao);
-    }
     if (defensor.defendendo) {
         dano = Math.floor(dano / 2); // reduz pela metade
         defensor.defendendo = false; // defesa vale só para um turno
         
     }
-
-
     if (chanceCritico <= atacante.critico) {
         dano *= 2
         logBattle(`<div class="critico-msg">*DANO CRÍTICO*</div>`);
@@ -591,11 +667,7 @@ function atacar(atacante, defensor) {
     }else {
         tocarSomEfeito("Atacar");
     }
-    if (chanceEsquiva <= defensor.esquiva) {
-        tocarSomEfeito("Esquiva")
-        logBattle(`<div class="esquiva-msg">${defensor.nome} esquivou dos ataques de ${atacante.nome}!</div>`);
-        return
-    } 
+    
 
     if (defensor.def >= atacante.atk) {
         dano = 1
@@ -603,9 +675,6 @@ function atacar(atacante, defensor) {
 
     defensor.hp -= dano
     if (defensor.hp < 0) defensor.hp = 0;
-    if (chanceCritico >= atacante.critico){
-        
-    }
     
     logBattle(`<div class="dano-msg">${atacante.nome} atacou e causou ${dano} de dano</div>`);
     if (defensor.nome === "Vegeta" && defensor.hp <= 100 && !defensor.oozaruAtivo) {
@@ -619,7 +688,7 @@ function atacar(atacante, defensor) {
         return;
     }
     if (defensor.nome === "Goku" && defensor.hp > 0 && defensor.hp <= 900 && !defensor.ssjAtivo) {
-        verificarTransformacaoGoku(defensor);
+        GokuSSJ(defensor);
         turnoFinalizado = true;
         return;
     }
@@ -645,7 +714,7 @@ function atacar(atacante, defensor) {
 
 }
 
-function batalhar(personagemA, personagemB) {
+/*function batalhar(personagemA, personagemB) {
 
     while (personagemA.hp > 0 && personagemB.hp > 0) {
         logBattle(`<div class="turno-title">TURNO ${turno}</div>`);
@@ -678,6 +747,7 @@ function batalhar(personagemA, personagemB) {
 
     }
 }
+    */
 function usarHabilidade(atacante, defensor, habilidade) {
     const habilidadeResolvida = obterHabilidadeResolvida(atacante, habilidade, estagio);
     const nomeExibido = habilidadeResolvida?.nome || obterNomeHabilidadeExibido(atacante, habilidade, estagio);
@@ -729,7 +799,7 @@ function usarHabilidade(atacante, defensor, habilidade) {
         return;
     }
     if (defensor.nome === "Goku" && defensor.hp > 0 && defensor.hp <= 900 && !defensor.ssjAtivo) {
-        verificarTransformacaoGoku(defensor);
+        GokuSSJ(defensor);
         turnoFinalizado = true;
         return;
     }
@@ -841,7 +911,7 @@ const estagios = {
         criarPersonagem2: () => ({
             nome: "Vegeta",
             hp: 2000,
-            atk: 450,
+            atk: 400,
             def: 350,
             esquiva: 13,
             critico: 12,
@@ -912,20 +982,46 @@ const estagios = {
     },
     4: {
         nome: "Saga Cell - 2",
-        frase: "Cell absorve Androides 17 e 18",
-        inimigo: "Cell Semiperfeito",
+        frase: "Cell absorve Androide 17",
+        inimigo: "Cell Semi-perfeito",
         criarPersonagem2: () => ({
-            nome: "Cell Semiperfeito",
-            hp: 4000,
-            atk: 1200,
-            def: 700,
+            nome: "Cell Semi-perfeito",
+            hp: 10000,
+            atk: 2000,
+            def: 1250,
             esquiva: 20,
             critico: 15,
-            ki: 1500,
-            // Habilidades do Majin Bu - adicione habilidades aqui quando estiverem prontas
+            ki: 6000,
+            // Habilidades do cell semi - adicione habilidades aqui quando estiverem prontas
             // Exemplo: { nome: "NovaHabilidade", custo: 300, dano: 800 }
             habilidades: [
-                { nome: "Death Beam", custo: 250, dano: 1000 }
+                { nome: "Mouth Energy Wave", custo: 1500, dano: 2300 }
+                // Adicione a segunda habilidade aqui
+            ],
+            atkBase: 1200,
+            esquivaBase: 20,
+            kaiokenAtivo: false,
+            kaiokenTurnos: 0,
+            oozaruAtivo: false,
+            transformacaoAtiva: false
+        })
+    },
+    5: {
+        nome: "Saga Cell - 3",
+        frase: "O Erro de Vegeta, Cell absorve Androide 18",
+        inimigo: "Cell Perfeito",
+        criarPersonagem2: () => ({
+            nome: "Cell Perfeito",
+            hp: 10000,
+            atk: 2000,
+            def: 1250,
+            esquiva: 20,
+            critico: 15,
+            ki: 6000,
+            // Habilidades do cell semi - adicione habilidades aqui quando estiverem prontas
+            // Exemplo: { nome: "NovaHabilidade", custo: 300, dano: 800 }
+            habilidades: [
+                { nome: "indefinida", custo: 1500, dano: 2300 }
                 // Adicione a segunda habilidade aqui
             ],
             atkBase: 1200,
@@ -961,18 +1057,104 @@ function inicializarEstagio(numEstagio) {
     logBattle(getStatusHtml(personagem1, estagio));
     logBattle(getStatusHtml(personagem2, estagio));
 
-    verificarTransformacaoGoku(personagem1);
+    GokuSSJ(personagem1);
     ocultarBotaoEstagio2();
 }
 
 const botaoEstagio2 = document.getElementById("btnEstagio2");
 if (botaoEstagio2) {
     botaoEstagio2.addEventListener("click", () => {
-        inicializarEstagio(estagio + 1);
+        const proximoEstagio = estagio + 1;
+        mostrarPrologo(proximoEstagio);
+        pararTrilhaEstagio()
     });
 }
 
+const prologos = {
+    1: "imagens/sagasaiyajin.mp4",
+    2: "imagens/sagafreeza.mp4",
+    3: "imagens/sagacell1.mp4",
+    4: "imagens/sagacell2.mp4",
+    5: "imagens/sagacell3.mp4"
+};
+
+// Função para mostrar o prólogo de uma saga
+function mostrarPrologo(numeroEstagio) {
+  const videoPath = prologos[numeroEstagio];
+  if (!videoPath || !videoPrologoSource || !videoPrologo || !telaPrologo || !btnPrologoContinuar) {
+    return;
+  }
+
+  let prologoJaIniciado = false;
+
+  videoPrologoSource.src = videoPath;
+  videoPrologo.load();
+  telaPrologo.style.display = "flex";
+  videoPrologo.currentTime = 0;
+  videoPrologo.loop = false;
+
+  const iniciarEstagio = () => {
+    if (prologoJaIniciado) {
+      return;
+    }
+
+    prologoJaIniciado = true;
+    videoPrologo.onended = null;
+
+    telaPrologo.style.display = "none";
+    videoPrologo.pause();
+    videoPrologo.currentTime = 0;
+    transicaoInicio(numeroEstagio);
+  };
+
+  btnPrologoContinuar.onclick = iniciarEstagio;
+  videoPrologo.onended = iniciarEstagio;
+  videoPrologo.play().catch(() => {
+    // Autoplay pode ser bloqueado; o vídeo pode continuar ao interagir com a tela.
+  });
+}
+
 // ===== Ações dos botões =====
+document.addEventListener("keyup", function(event) {
+    const container = document.getElementById("menu-habilidades");
+  if (container && container.style.display === "flex") {
+    switch(event.key) {
+      case "a": // tecla 1 → primeira habilidade
+        selecionarHabilidade(0);
+        break;
+      case "s": // tecla 2 → segunda habilidade
+        selecionarHabilidade(1);
+        break;
+      case "Alt": // tecla Esc → fechar menu sem escolher
+        esconderMenuHabilidades();
+        break;
+    }
+  }
+  switch(event.key.toLowerCase()) {
+    case "z": // tecla z → atacar
+      acaoJogador("atacar");
+      break;
+    case "x": // tecla x → habilidade
+      acaoJogador("habilidade");
+      break;
+    case "c": // tecla c → item
+      acaoJogador("item");
+      break;
+    case "v": // tecla v → defesa
+      acaoJogador("defesa");
+      break;
+    case "b": // tecla b → carregar Ki
+      acaoJogador("carregarKi");
+      break;
+    case "n": // tecla n → kaioken
+      acaoJogador("kaioken");
+      break;
+    case "r": // tecla r → reiniciar jogo
+      reiniciarJogo();
+      break;
+  }
+});
+
 function acaoJogador(acao) {
     if (acao === 'habilidade') {
         mostrarMenuHabilidades();
@@ -996,7 +1178,13 @@ function executarAcaoJogador(acao, habilidadeSelecionada = null) {
         const habilidade = habilidadeSelecionada || personagem1.habilidades[0];
         usarHabilidade(personagem1, personagem2, habilidade);
     } else if (acao === 'item') {
-        usarItem(personagem1, personagem1.itens[0]);
+        if(estagio===3 || personagem1.nome==="Piccolo"){
+            CuraPiccolo(personagem1, personagem1.itens[0]);
+        }else{
+            usarItem(personagem1, personagem1.itens[0]);
+        }
+        
+        
     } else if (acao === 'defesa') {
         defender(personagem1);
     } else if (acao === 'carregarKi') {
@@ -1022,9 +1210,9 @@ function executarAcaoJogador(acao, habilidadeSelecionada = null) {
     let escolha = Math.random();
     if (escolha < 0.20 && personagem2.ki>=250) { //20% de chance
         usarHabilidade(personagem2, personagem1, personagem2.habilidades[0]);
-    } else if (escolha < 0.30){ //20% de chance
+    } else if (escolha < 0.40){ //20% de chance
         defender(personagem2);        
-    } else if(escolha<0.40 || personagem2.ki<250){ //10% de chance
+    } else if(personagem2.ki<250){ //10% de chance
         carregarKi(personagem2);
     } else if(escolha<1.00 ){ //60% de chance
         atacar(personagem2, personagem1);
@@ -1034,9 +1222,34 @@ function executarAcaoJogador(acao, habilidadeSelecionada = null) {
     statusDeBatalha(personagem1, personagem2);
     turno++
 }
+function CuraPiccolo(personagem, item){
+    if (item.quantidade > 0 && personagem.nome==="Piccolo") {
+        logBattle(`<div class="habilidade-msg">${personagem.nome} usou regeneração!</div>`);
+        const battleLog = document.getElementById("battle-log");
+        const video = document.createElement("video");
+        video.src = "imagens/PiccoloRegen.mp4";
+        video.style.display = "block";
+        video.style.margin = "10px auto";
+        video.loop = false;
+        video.autoplay = true;
+        video.controls = false;
+        video.style.maxWidth = "35%";
+        battleLog.appendChild(video);
 
+        personagem.hp += item.cura;
+        if (personagem.hp > personagem.hpMax)
+            personagem.hp = personagem.hpMax;
+        // limite máximo de HP
+
+        item.quantidade--; // reduz uma semente
+
+        logBattle(`<div class="dano-msg">${personagem.nome} recuperou ${item.cura} de HP! Restam ${item.quantidade} regenerações.</div>`);
+    } else {
+        logBattle(`<div class="esquiva-msg">${personagem.nome} não consegue mais se regenerar!</div>`);
+    }
+}
 function usarItem(personagem, item) {
-    if (item.quantidade > 0) {
+    if (item.quantidade > 0 ) {
         tocarSomEfeito("Senzu")
         logBattle(`<div class="habilidade-msg">${personagem.nome} usou ${item.nome}!</div>`);
         const battleLog = document.getElementById("battle-log");
@@ -1046,7 +1259,9 @@ function usarItem(personagem, item) {
         img.style.margin = "10px auto";
         img.style.maxWidth = "80px";
         battleLog.appendChild(img);
-
+        if(estagio>3){
+            item.cura+=500
+        }
         personagem.hp += item.cura;
         if (personagem.hp > personagem.hpMax)
             personagem.hp = personagem.hpMax;
@@ -1066,9 +1281,13 @@ function defender(personagem) {
 
 }
 function carregarKi(personagem) {
-    const ganho = 225;
+    let ganho = 225;
+    if(estagio>3){
+        ganho = 800;
+    }else{
+        ganho = 225;
+    }
     personagem.ki += ganho;
-    
     logBattle(`<div class="habilidade-msg">${personagem.nome} aumentou ${ganho} de Ki!</div>`);
     if (estagio === 1 && personagem.nome==="Goku") {
         tocarSomEfeito("kiCharge");
@@ -1143,6 +1362,46 @@ if (estagio === 2 && personagem.nome==="Freeza" && personagem.transformacaoAtiva
         video.style.margin = "10px auto";
         video.loop = false;
         video.volume=0.5
+        video.autoplay = true;
+        video.controls = false;
+        video.style.maxWidth = "35%";
+        battleLog.appendChild(video);
+}
+if  (estagio === 3 && personagem.nome==="Piccolo"){
+    const battleLog = document.getElementById("battle-log");
+        const video = document.createElement("video");
+        video.src = "imagens/kiChargePiccolo.mp4";
+        video.style.display = "block";
+        video.style.margin = "10px auto";
+        video.loop = false;
+        video.volume=0.5
+        video.autoplay = true;
+        video.controls = false;
+        video.style.maxWidth = "35%";
+        battleLog.appendChild(video);
+}
+if  (estagio === 4 && personagem.nome==="Super Vegeta"){
+    const battleLog = document.getElementById("battle-log");
+        const video = document.createElement("video");
+        video.src = "imagens/kiChargeSuperVegeta.mp4";
+        video.style.display = "block";
+        video.style.margin = "10px auto";
+        video.loop = false;
+        video.volume=0.5
+        video.autoplay = true;
+        video.controls = false;
+        video.style.maxWidth = "35%";
+        battleLog.appendChild(video);
+}
+if  (estagio === 4 && personagem.nome==="Cell Semi-perfeito"){
+    tocarSomEfeito("kiChargeCellSemi");
+    const battleLog = document.getElementById("battle-log");
+        const video = document.createElement("video");
+        video.src = "imagens/kiChargeCellSemi.mp4";
+        video.style.display = "block";
+        video.style.margin = "10px auto";
+        video.loop = false;
+        video.volume=0
         video.autoplay = true;
         video.controls = false;
         video.style.maxWidth = "35%";
@@ -1293,6 +1552,20 @@ function PowerUp(personagem){
         video.style.maxWidth = "40%";
         battleLog.appendChild(video);
     }
+    if (personagem.nome === "Super Vegeta") {
+        tocarSomEfeito("PowerUpSuperVegeta");
+        const battleLog = document.getElementById("battle-log");
+        const video = document.createElement("video");
+        video.src = "imagens/PowerUpSuperVegeta.mp4";
+        video.style.display = "block";
+        video.style.margin = "10px auto";
+        video.loop = false;
+        video.volume=0;
+        video.autoplay = true;
+        video.controls = false;
+        video.style.maxWidth = "40%";
+        battleLog.appendChild(video);
+    }
 }
 
 function atualizarPowerUp(personagem) {
@@ -1312,7 +1585,7 @@ function atualizarPowerUp(personagem) {
 function transformarEmOozaru(defensor) {
     defensor.oozaruAtivo = true;
     defensor.hp += 500;
-    defensor.atk+=100;
+    defensor.atk+=150;
     defensor.def+=50;
     defensor.habilidades[0].codigo = "Chou Makouhou";
     defensor.habilidades[0].nome = "Chou Makouhou";
@@ -1341,6 +1614,8 @@ function mudarFundoEstagio(estagio) {
         body.style.backgroundImage = "url('imagens/cenarioNamek.jpg')";
     } else if (estagio === 3) {
         body.style.backgroundImage = "url('imagens/PiccoloVSCell.jpg')";
+    } else if(estagio === 4){
+        body.style.backgroundImage = "url('imagens/supervegetavssemicell.jpg')";
     }
 }
 
