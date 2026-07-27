@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 
 <head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Press+Start+2P&display=swap"
     rel="stylesheet">
 
@@ -420,6 +422,7 @@
 
     transition: opacity 0.8s ease;
 }
+
   </style>
 </head>
 <div id="flash"></div>
@@ -508,10 +511,13 @@ background:black; justify-content:center; align-items:center; flex-direction:col
   <!--scripts-->
   <script src="js/script.js"></script>
   <script>
+    if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
     //Área de execução
     let estagio = 0;
 
-    let personagem1 = {
+    /*let personagem1 = {
       nome: "Goku",
       hp: 1500,
       atk: 500,
@@ -547,7 +553,7 @@ background:black; justify-content:center; align-items:center; flex-direction:col
       kaiokenAtivo: false,
       kaiokenTurnos: 0,
       oozaruAtivo: false
-    }
+    }*/
     
     // Inicia o áudio da tela inicial assim que a página estiver pronta
     document.addEventListener("DOMContentLoaded", () => {
