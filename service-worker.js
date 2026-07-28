@@ -1,70 +1,151 @@
-const CACHE_NAME = "dragonball-v001";
+/* ==========================
+   Dragon Ball Z RPG
+   Service Worker v2
+   ========================== */
 
-// Arquivos essenciais para iniciar o jogo
-const CORE_FILES = [
+const CACHE_VERSION = "dbzrpg-v2";
+const STATIC_CACHE = `${CACHE_VERSION}-static`;
+const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
+
+/* Arquivos mínimos para iniciar o jogo */
+const APP_SHELL = [
     "./",
     "./index.html",
-    "./script.js",
-    "./manifest.json"
+    "./manifest.json",
+    "./js/script.js"
 ];
 
+/* -------------------------
+   INSTALAÇÃO
+-------------------------- */
+
 self.addEventListener("install", event => {
+
+    self.skipWaiting();
+
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(CORE_FILES))
-            .then(() => self.skipWaiting())
+
+        caches.open(STATIC_CACHE)
+            .then(cache => cache.addAll(APP_SHELL))
+            .catch(err => {
+                console.error("Erro ao criar cache:", err);
+            })
+
     );
+
 });
 
+/* -------------------------
+   ATIVAÇÃO
+-------------------------- */
+
 self.addEventListener("activate", event => {
+
     event.waitUntil(
+
         caches.keys().then(keys => {
+
             return Promise.all(
+
                 keys.map(key => {
-                    if (key !== CACHE_NAME) {
+
+                    if (
+                        key !== STATIC_CACHE &&
+                        key !== DYNAMIC_CACHE
+                    ) {
                         return caches.delete(key);
                     }
+
                 })
+
             );
+
         }).then(() => self.clients.claim())
+
     );
+
 });
+
+/* -------------------------
+   FETCH
+-------------------------- */
 
 self.addEventListener("fetch", event => {
 
     if (event.request.method !== "GET") return;
+
+    const url = new URL(event.request.url);
+
+    // Não faz cache de extensões do Chrome
+    if (url.protocol.startsWith("chrome")) return;
 
     event.respondWith(
 
         caches.match(event.request).then(cacheResponse => {
 
             if (cacheResponse) {
+
+                // Atualiza em segundo plano
+                fetch(event.request)
+                    .then(networkResponse => {
+
+                        if (networkResponse.ok) {
+
+                            caches.open(DYNAMIC_CACHE)
+                                .then(cache => {
+
+                                    cache.put(
+                                        event.request,
+                                        networkResponse.clone()
+                                    );
+
+                                });
+
+                        }
+
+                    })
+                    .catch(() => {});
+
                 return cacheResponse;
+
             }
 
             return fetch(event.request)
+
                 .then(networkResponse => {
 
-                    if (!networkResponse || networkResponse.status !== 200) {
+                    if (!networkResponse || !networkResponse.ok) {
                         return networkResponse;
                     }
 
-                    const responseClone = networkResponse.clone();
+                    const clone = networkResponse.clone();
 
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, responseClone);
-                    });
+                    caches.open(DYNAMIC_CACHE)
+                        .then(cache => {
+
+                            cache.put(event.request, clone);
+
+                        });
 
                     return networkResponse;
 
-                }).catch(() => {
+                })
 
-                    // Se não houver internet e o arquivo nunca foi salvo,
-                    // apenas retorna vazio.
-                    return new Response("", {
-                        status: 404,
-                        statusText: "Offline"
-                    });
+                .catch(async () => {
+
+                    // Se existir em qualquer cache
+                    const cached = await caches.match(event.request);
+
+                    if (cached) return cached;
+
+                    // Se não existir, retorna erro offline
+                    return new Response(
+                        "Offline",
+                        {
+                            status: 503,
+                            statusText: "Offline"
+                        }
+                    );
 
                 });
 
