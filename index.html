@@ -3,7 +3,9 @@
 
 <head>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#ff9800">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Press+Start+2P&display=swap"
     rel="stylesheet">
 
@@ -511,9 +513,7 @@ background:black; justify-content:center; align-items:center; flex-direction:col
   <!--scripts-->
   <script src="js/script.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-  }
+   
     //Área de execução
     let estagio = 0;
 
