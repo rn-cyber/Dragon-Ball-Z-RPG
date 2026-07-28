@@ -528,7 +528,7 @@ function getStatusMediaHtml(personagem, estagio) {
     const src = getImagemStatus(personagem, estagio);
     if (src.endsWith('.mp4')) {
         return `
-            <video src="${src}" autoplay loop muted playsinline style="display:block;margin:10px auto;max-width:250px;"></video>
+            <video src="${src}" autoplay muted playsinline style="display:block;margin:10px auto;max-width:250px;"></video>
         `;
     }
     return `
