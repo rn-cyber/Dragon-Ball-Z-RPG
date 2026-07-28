@@ -1,11 +1,12 @@
 {
   "name": "Dragon Ball Z RPG",
-  "short_name": "DB RPG",
-  "description": "RPG de Dragon Ball em turnos.",
+  "short_name": "DBZ RPG",
+  "description": "RPG de Dragon Ball Z em turnos.",
   "start_url": "./",
-  "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#ff9800",
+  "scope": "./",
+  "display": "fullscreen",
+  "background_color": "#f3aa00",
+  "theme_color": "#00fffd",
   "orientation": "landscape",
   "icons": [
     {
@@ -18,5 +19,11 @@
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "id": "DBZRPG",
+  "lang": "pt",
+  "dir": "auto",
+  "categories": [
+    "games"
   ]
 }

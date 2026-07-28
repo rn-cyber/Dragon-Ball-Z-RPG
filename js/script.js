@@ -1636,4 +1636,9 @@ function reiniciarJogo() {
 
     turnoFinalizado = false;
     inicializarEstagio(estagio);
+    if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("Service Worker registrado"))
+    .catch(err => console.log(err));
+}
 }
