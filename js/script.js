@@ -179,7 +179,7 @@ function transicaoInicio(numeroEstagio = 1) {
 
     // tela fica branca
     flash.style.opacity = "1";
-
+    document.getElementById("battle-log").replaceChildren();
     setTimeout(() => {
 
         

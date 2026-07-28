@@ -572,9 +572,6 @@ const telaTutorial = document.getElementById("telaTutorial");
 
   // Ao clicar em "Continuar", esconde o tutorial e mostra a tela inicial
   btnTutorialContinuar.addEventListener("click", () => {
-    if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
-    }
     telaTutorial.style.display = "none";
     telaInicio.style.display = "flex";
   });
